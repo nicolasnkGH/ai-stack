@@ -16,7 +16,7 @@ The stack is accessed through a Cloudflare Tunnel with HTTPS and optional MFA.
 
 *  Authentication is handled by:
     - Open WebUI local accounts
-    - Cloudflare Zero Trust (if enabled) and higly suggested for max security.
+    - Cloudflare Zero Trust (optional but strongly recommended for maximum security).
     
 Once logged in, all interaction happens through the Open WebUI interface.
 
@@ -26,12 +26,14 @@ Model selection happens in the top bar of Open WebUI.
 
 ### Available Model Types
 
-Typical models in this stack:
-*   General chat models (LLaMA, Qwen, Gemma, etc.)
-    
-*   Vision models (Qwen-Vision)
-    
-*   Embedding models (bge-m3, etc.)
+Model categories in this stack:
+
+- Chat models (e.g., Llama, Qwen, Gemma)
+- Vision-capable models (e.g., Qwen Vision)
+- Embedding models (e.g., bge-m3 for RAG)
+
+For detailed descriptions of each model and when to use them, see:
+[docs/models.md](https://github.com/nicolasnkGH/ai-stack/blob/main/docs/models.md)
 
 ### Switching Models
 
