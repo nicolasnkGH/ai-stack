@@ -50,6 +50,47 @@ Full details: [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blo
 * Typical VM sizing: 6–8 vCPU, 32–64GB RAM, GPU passthrough
 
 ---
+
+## 📸 Proof of Life
+
+This stack is fully operational and GPU-accelerated.
+
+### System & GPU
+
+**VM Info**
+![VM Info](./screenshots/vm-configuration.png)  
+
+**GPU Usage**
+![GPU Usage](./screenshots/nvidia-smi.png)  
+
+**Docker Stack**
+![Docker Stack](./screenshots/docker-compose-ps.png)  
+
+### Open WebUI
+
+
+**Model Selection**  
+![Chat](./screenshots/openwebui-chat.png)  
+
+**Chat + RAG**  
+![Web Search](./screenshots/openwebui-websearch.png)  
+
+**Vision**  
+![Vision](./screenshots/openwebui-vision.png)  
+
+**Model Generating Image** 
+![Models](./screenshots/openwebui-models-generating-images.png)  
+
+### API & TTS
+
+![OpenAI-compatible endpoint](./screenshots/openai-endpoint.png)  
+
+### Image Generation (ComfyUI)
+
+![ComfyUI Workflow](./screenshots/comfyui-output.png)  
+
+
+---
 Maintained by Nicolas Teixeira.
 
   
