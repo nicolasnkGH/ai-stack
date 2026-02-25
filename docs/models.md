@@ -9,111 +9,32 @@ This document describes the models available in the Private AI Stack and how to 
 
 ## ⚡ Quick Picks
 
-| Goal | Best pick | Notes |
-|---|---|---|
-| Fast everyday chat | **Llama 3.1** | Lowest latency, good general use |
-| Technical deep-dive / structured answers | **Qwen** | Great for engineering-style responses |
-| Strong reasoning / long-form thinking | **Gemma 27B** | Slower, but higher “thinking” quality |
-| Understand an image / screenshot | **Qwen Vision** | Switch back to your chat model after |
-| Research with documents (RAG) | **bge-m3 (Embeddings)** | Used behind the scenes for document search |
+| Goal | Best Pick | VRAM Usage | Notes |
+| --- | --- | --- | --- |
+| **Fast Everyday Chat** | **Gemma 3 (12B)** | ~8GB | Your primary driver. Now handles images and logic in a single session. |
+| **Deep Engineering** | **Qwen 2.5 Coder** | ~8-12GB | Optimized for the code/logic tasks you do. |
+| **Complex Reasoning** | **Gemma 3 (27B)** | ~18-22GB | Peak intelligence for multi-step engineering logic and detailed image analysis. |
+| **Research with Documents (RAG)** | **bge-m3** | **Minimal** | Powers the background search for your uploaded technical PDFs. |
 
 ---
 
-## 🧭 Decision Cheatsheet
+### 📥 Model Sources & Documentation
 
-- **Need speed?** → Llama 3.1  
-- **Need structure + technical detail?** → Qwen  
-- **Need careful reasoning?** → Gemma 27B  
-- **Need to analyze an image?** → Qwen Vision (then switch back)  
-- **Need better citations from a PDF?** → Upload + RAG (embedding model does the indexing)
+Instead of manual descriptions, refer to the official libraries for full parameters and benchmarks:
 
----
+*   **Ollama Model Library** | [Browse Models](https://ollama.com/library)
 
-## 💬 Chat Models
+    *   Use this to pull the specific versions of **Gemma 3** (12B/27B) and **Qwen 2.5 Coder** used in this stack.
 
-### 🟢 Llama 3.1
-**Tags:** `Fast` · `General` · `Low latency`
+    *   **Command**: `docker exec -it ollama ollama pull gemma3:12b`.
 
-**Best for**
-- Quick questions
-- Brainstorming
-- Summaries and rewrites
+*   **Civitai (Stable Diffusion)** | [Browse SDXL Checkpoints](https://civitai.com/)
 
-**Avoid when**
-- You need very strict formatting or deep technical correctness
+    *   Source for **Juggernaut XL** and custom LoRAs used by the ComfyUI backend.
 
-**Operator notes**
-- If responses feel “too shallow,” switch to **Qwen** or **Gemma 27B**
+*   **Hugging Face** | [Technical Specs](https://huggingface.co/)
 
----
-
-### 🔵 Qwen (Chat)
-**Tags:** `Technical` · `Structured` · `Good formatting`
-
-**Best for**
-- System engineering / DevOps questions
-- Step-by-step troubleshooting
-- Writing structured docs (Markdown, checklists)
-
-**Avoid when**
-- You want the fastest possible response time
-
-**Operator notes**
-- Great default when you care about correctness and structure.
-
----
-
-### 🟣 Gemma 27B
-**Tags:** `Reasoning` · `Long-form` · `Heavier`
-
-**Best for**
-- Complex analysis
-- Tradeoffs and decision-making
-- Multi-step reasoning
-
-**Avoid when**
-- You want low latency or many concurrent users
-
-**Operator notes**
-- If the answer is too long, ask: “Answer in 6 bullets.”  
-- If it’s too slow, switch back to **Qwen**.
-
----
-
-## 👁️ Vision Models
-
-### 🟠 Qwen Vision
-**Tags:** `Image understanding` · `Screenshots` · `Heavier`
-
-**Use when**
-- You need the model to interpret an image (UI screenshot, error screen, photo, diagram)
-
-**Workflow**
-1. Switch model → **Qwen Vision**
-2. Upload image
-3. Ask your question
-4. Switch back to your normal chat model
-
-> [!IMPORTANT]
-> Vision models are slower and heavier. Use them only when needed.
-
----
-
-## 📚 Embedding Models (RAG)
-
-### 🟡 bge-m3
-**Tags:** `RAG` · `Document search` · `Embeddings`
-
-This model powers document retrieval:
-- Chunking + indexing documents you upload
-- Finding relevant sections during Q&A
-
-**Recommended RAG settings**
-- Top K: **3–5**
-- Score threshold: **≥ 0.7**
-
-> [!NOTE]
-> You don’t usually “chat” with an embedding model — it’s used by the system to retrieve context.
+    *   Reference for deep technical architecture on the **bge-m3** embedding model and vision encoders.
 
 ---
 
@@ -131,143 +52,94 @@ This model powers document retrieval:
 
 ---
 
-## 🎨 Image Generation Models (ComfyUI)
+## 🎨 Image Generation (ComfyUI)
 
-Image generation is handled by ComfyUI using Stable Diffusion–style models.
+Image generation is handled by a node-based **ComfyUI** backend utilizing **Stable Diffusion XL (SDXL)** models.
 
-### 🟥 Juggernaut XL v9 + LoRA
-**Tags:** `SDXL` · `High quality` · `Creative` · `Heavy`
+### 🛠️ Hardware & Storage Logic
 
-**Model type**
-- Base: **Juggernaut XL v9 (SDXL)**
-- Enhancements: **LoRA add-ons**
+*   **Performance Tier (Local SSD)**: All checkpoints (e.g., **Juggernaut XL v9**) and LoRAs are stored in `/opt/ai/comfyui/models` to ensure rapid injection into VRAM.
 
-**Best for**
-- Fantasy and RPG-style art
-- Portraits and characters
-- Stylized illustrations
-- High-quality creative images
+*   **Capacity Tier (NFS)**: Final image outputs and workflow JSONs are saved to `/mnt/ai/comfyui/output` for long-term persistence.
 
-**Avoid when**
-- You need very fast generations
-- VRAM is limited or heavily used by chat models
+*   **VRAM Contention**: Running high-resolution SDXL workflows concurrently with **Gemma 3 (27B)** can exceed the **24GB limit** of the RTX 3090 Ti. It is recommended to unload LLMs before heavy creative sessions.
 
-**Operator notes**
-- Higher resolution = much higher VRAM usage  
-- If generation fails:
-  - Lower resolution
-  - Lower batch size
-  - Reduce steps or sampler complexity
-- LoRAs are used to:
-  - Enforce style
-  - Add specific character traits
-  - Improve faces, clothing, or themes
+### 📋 Operator Workflow
 
-**Typical workflow**
-1. Open ComfyUI
-2. Load Juggernaut XL v9 workflow
-3. Select LoRA(s) if needed
-4. Set:
-   - Resolution
-   - Steps
-   - Sampler
-5. Generate
+1.  **Model Loading**: Checkpoints are pulled from `/opt/ai/comfyui/models/checkpoints/`.
 
-**Storage path**
-```bash
-/mnt/ai/comfyui/root/models
-```
-LoRAs and models are stored under the ComfyUI root path so they persist across restarts.
+2.  **Enhancements**: LoRAs for style or character consistency are loaded from `/opt/ai/comfyui/models/loras/`.
+
+3.  **Resolution Scaling**: Higher resolutions significantly increase VRAM usage and I/O wait.
+
+4.  **Failure Recovery**: If a generation fails (OOM), lower the resolution or reduce the batch size in the ComfyUI nodes.
 
 ---
 
-## 🧩 Known Behaviors & Fixes
+## 🧩 Known Behaviors & Operational Fixes
 
-### Language mixing (Portuguese + English)
-Some models may occasionally mix languages, especially if:
-- Prompt language is unclear
-- The model’s training bias favors English
+### 🌐 Multi-Language Handling
 
-**Fix**
-- Add a hard instruction:  
-  **“Respond only in Portuguese.”**
-- If TTS sounds wrong, try a different voice mapping or model.
+Some models (especially **Gemma 3**) may default to English for technical DevOps or Linux queries due to training bias.
 
-### Hallucinations / confident mistakes
-**Fix**
-- Prefer RAG when using uploaded docs
-- Use web search for facts that change over time
-- Ask for citations / quotes from the uploaded document
+*   **Fix**: Append a System Prompt instruction: _"Respond only in Portuguese"_ for general chat.
 
+*   **Audio Fix**: If TTS output is garbled, verify the voice mapping in your `/opt/ai/tts/config/voice_to_speaker.yaml`.
+
+### 🧠 Hallucinations & Fact-Checking
+
+*   **Technical Docs**: Force RAG for uploaded PDFs to ensure the model uses your specific documentation as the "source of truth".
+
+*   **Live Data**: Toggle **SearXNG** for queries regarding version numbers or breaking changes (e.g., "What's the latest Proxmox 8.3 bug?").
+
+*   **Verification**: Always ask the model to _"provide direct quotes from the uploaded document"_ to confirm accuracy.
 ---
 
-## 📥 Model Sources & Resources
+## 📥 Model Sources & Management
 
-### 💬 Ollama Models (Chat & Vision)
+🖥️ **How to find it in Open WebUI**
 
-All chat and vision models used in this stack are managed by Ollama.
+1.  **Access the Interface**: Log in to your instance at `https://YOUR.DOMAIN.HERE`.
 
-- **Ollama Model Library**  
-  https://ollama.com/library  
+2.  **Open Settings**: Click on your **Profile Picture/Name** in the bottom-left corner and select **Settings**.
 
-Use it to:
-- Browse available LLMs
-- Check model sizes and hardware needs
-- Pull models with:
-```bash
-  ollama pull <model-name>
-```
+3.  **Navigate to Models**: Click the **Models** tab in the sidebar of the settings window.
 
-Examples:
-```bash
-ollama pull llama3.1
-ollama pull qwen2.5
-ollama pull gemma
-```
----
+4.  **Pull a Model**:
 
-## 🎨 ComfyUI Models (Image Generation)
+    *   Find the input field labeled **"Pull a model from Ollama.com"**.
 
-ComfyUI uses Stable Diffusion–style models, checkpoints, and LoRAs.
+    *   Type the name and tag of the model you want (e.g., `gemma3:12b` or `qwen2.5-coder`).
 
-### Common Model Sources
+    *   Click the **Download icon** (downward arrow) next to the input box.
 
-- **Civitai (Models, LoRAs, Styles)**  
-  https://civitai.com  
+5.  **Monitor Progress**: A progress bar will appear at the top of the screen while the model is pulled directly into your **Local SSD (**`/opt/ai`**)** storage.
 
-- **Hugging Face (Checkpoints, VAEs, ControlNets)**  
-  https://huggingface.co  
+🤖 **Ollama (Chat, Vision & RAG)**
 
-- **ComfyUI Community Workflows**  
-  https://github.com/comfyanonymous/ComfyUI  
-  https://github.com/comfyanonymous/ComfyUI_examples  
+Managed within the `ollama` container. Explore models at the [Ollama Library](https://ollama.com/library).
 
-### Where to Place Models
+*   **GUI (Recommended)**: Navigate to **Settings > Models** in the WebUI and enter the model tag (e.g., `gemma3:12b`).
 
-```bash
-/mnt/ai/comfyui/root/models/
-```
+*   **CLI**: Pull models directly into the local SSD:
 
-### Typical Subfolders
+    ```bash
+    docker exec -it ollama ollama pull gemma3:12b
+    ```
 
-- `checkpoints/` – Base models (Juggernaut, SDXL, etc.)  
-- `loras/` – Style and character LoRAs  
-- `vae/` – VAEs  
-- `controlnet/` – ControlNet models  
+*   **Embedding Model**: `bge-m3` is pre-configured for background RAG indexing.
+
+### 🎨 ComfyUI (Image Generation)
+
+Checkpoints and LoRAs are sourced from [Civitai](https://civitai.com/) or [Hugging Face](https://huggingface.co/).
+
+*   **Performance Path**: Models **must** be placed on the SSD to avoid GPU starvation:
+
+    ```
+    /opt/ai/comfyui/models/
+    ```
+
+*   **Hierarchy**: Place base models in `checkpoints/` and style refinements in `loras/`.
 
 ---
-
-## 📚 RAG / Embedding Models
-
-Embedding models are managed by Open WebUI and Ollama.
-
-### References
-
-- https://ollama.com/library  
-
-### Common Embedding Models
-
-- `bge-m3`  
-- `nomic-embed-text`  
-
-
+_Maintained by Nicolas Teixeira._
