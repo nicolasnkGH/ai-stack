@@ -1,0 +1,1021 @@
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing dnspod...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing domainoffensive...
+[Certbot  ] › ☒  complete  Installed domainoffensive
+[Certbot  ] › ▶  start     Installing domeneshop...
+[Certbot  ] › ☒  complete  Installed domeneshop
+[Certbot  ] › ▶  start     Installing dynu...
+[Certbot  ] › ☒  complete  Installed dynu
+[Certbot  ] › ▶  start     Installing easydns...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing eurodns...
+[Certbot  ] › ☒  complete  Installed eurodns
+[Certbot  ] › ▶  start     Installing firstdomains...
+[Certbot  ] › ☒  complete  Installed firstdomains
+[Certbot  ] › ▶  start     Installing freedns...
+[Certbot  ] › ☒  complete  Installed freedns
+[Certbot  ] › ▶  start     Installing gandi...
+[Certbot  ] › ☒  complete  Installed gandi
+[Certbot  ] › ▶  start     Installing gcore...
+[Certbot  ] › ☒  complete  Installed gcore
+[Certbot  ] › ▶  start     Installing glesys...
+[Certbot  ] › ☒  complete  Installed glesys
+[Certbot  ] › ▶  start     Installing godaddy...
+[Certbot  ] › ☒  complete  Installed godaddy
+[Certbot  ] › ▶  start     Installing google...
+[Certbot  ] › ☒  complete  Installed google
+[Certbot  ] › ▶  start     Installing googledomains...
+[Certbot  ] › ☒  complete  Installed googledomains
+[Certbot  ] › ▶  start     Installing he...
+[Certbot  ] › ☒  complete  Installed he
+[Certbot  ] › ▶  start     Installing he-ddns...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing hetzner...
+[Certbot  ] › ☒  complete  Installed hetzner
+[Certbot  ] › ▶  start     Installing hetzner-cloud...
+[Certbot  ] › ☒  complete  Installed hetzner-cloud
+[Certbot  ] › ▶  start     Installing hostingnl...
+[Certbot  ] › ☒  complete  Installed hostingnl
+[Certbot  ] › ▶  start     Installing hover...
+[Certbot  ] › ☒  complete  Installed hover
+[Certbot  ] › ▶  start     Installing infomaniak...
+[Certbot  ] › ☒  complete  Installed infomaniak
+[Certbot  ] › ▶  start     Installing inwx...
+[Certbot  ] › ☒  complete  Installed inwx
+[Certbot  ] › ▶  start     Installing ionos...
+[Certbot  ] › ☒  complete  Installed ionos
+[Certbot  ] › ▶  start     Installing ispconfig...
+[Certbot  ] › ☒  complete  Installed ispconfig
+[Certbot  ] › ▶  start     Installing isset...
+[Certbot  ] › ☒  complete  Installed isset
+[Certbot  ] › ▶  start     Installing joker...
+[Certbot  ] › ☒  complete  Installed joker
+[Certbot  ] › ▶  start     Installing kas...
+[Certbot  ] › ☒  complete  Installed kas
+[Certbot  ] › ▶  start     Installing leaseweb...
+[Certbot  ] › ☒  complete  Installed leaseweb
+[Certbot  ] › ▶  start     Installing linode...
+[Certbot  ] › ☒  complete  Installed linode
+[Certbot  ] › ▶  start     Installing loopia...
+[Certbot  ] › ☒  complete  Installed loopia
+[Certbot  ] › ▶  start     Installing luadns...
+[Certbot  ] › ☒  complete  Installed luadns
+[Certbot  ] › ▶  start     Installing mchost24...
+[Certbot  ] › ☒  complete  Installed mchost24
+[Certbot  ] › ▶  start     Installing mijnhost...
+[Certbot  ] › ☒  complete  Installed mijnhost
+[Certbot  ] › ▶  start     Installing namecheap...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing netcup...
+[Certbot  ] › ☒  complete  Installed netcup
+[Certbot  ] › ▶  start     Installing nicru...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 513, in resolve
+    failure_criterion = self._attempt_to_pin_criterion(name)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 220, in _attempt_to_pin_criterion
+    criteria = self._get_updated_criteria(candidate)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 211, in _get_updated_criteria
+    self._add_to_criteria(criteria, requirement, parent=candidate)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing njalla...
+[Certbot  ] › ☒  complete  Installed njalla
+[Certbot  ] › ▶  start     Installing nsone...
+[Certbot  ] › ☒  complete  Installed nsone
+[Certbot  ] › ▶  start     Installing oci...
+[Certbot  ] › ☒  complete  Installed oci
+[Certbot  ] › ▶  start     Installing ovh...
+[Certbot  ] › ✖  error     Traceback (most recent call last):
+  File "/opt/certbot/bin/certbot", line 3, in <module>
+    from certbot.main import main
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/main.py", line 2, in <module>
+    from certbot._internal import main as internal_main
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/_internal/main.py", line 22, in <module>
+    from certbot import crypto_util
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/crypto_util.py", line 33, in <module>
+    from certbot import util
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/util.py", line 7, in <module>
+    import distutils.version
+ModuleNotFoundError: No module named 'distutils'
+Traceback (most recent call last):
+  File "/opt/certbot/bin/certbot", line 3, in <module>
+    from certbot.main import main
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/main.py", line 2, in <module>
+    from certbot._internal import main as internal_main
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/_internal/main.py", line 22, in <module>
+    from certbot import crypto_util
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/crypto_util.py", line 33, in <module>
+    from certbot import util
+  File "/opt/certbot/lib/python3.13/site-packages/certbot/util.py", line 7, in <module>
+    import distutils.version
+ModuleNotFoundError: No module named 'distutils'
+ERROR: Invalid requirement: 'acme==': Expected end or semicolon (after name and no valid version specifier)
+    acme==
+        ^
+
+[Certbot  ] › ▶  start     Installing plesk...
+[Certbot  ] › ☒  complete  Installed plesk
+[Certbot  ] › ▶  start     Installing porkbun...
+[Certbot  ] › ☒  complete  Installed porkbun
+[Certbot  ] › ▶  start     Installing powerdns...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing regru...
+[Certbot  ] › ✖  error     ERROR: Exception:
+Traceback (most recent call last):
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 107, in _run_wrapper
+    status = _inner_run()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/base_command.py", line 98, in _inner_run
+    return self.run(options, args)
+           ~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/cli/req_command.py", line 85, in wrapper
+    return func(self, options, args)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/commands/install.py", line 388, in run
+    requirement_set = resolver.resolve(
+        reqs, check_supported_wheels=not options.target_dir
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 99, in resolve
+    result = self._result = resolver.resolve(
+                            ~~~~~~~~~~~~~~~~^
+        collected.requirements, max_rounds=limit_how_complex_resolution_can_be
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 601, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 434, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/resolvers/resolution.py", line 150, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/resolvelib/structs.py", line 194, in __bool__
+    return bool(self._sequence)
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 165, in __bool__
+    self._bool = any(self)
+                 ~~~^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 149, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 39, in _iter_built
+    candidate = func()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 180, in _make_candidate_from_link
+    base: BaseCandidate | None = self._make_base_candidate_from_link(
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        link, template, name, version
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 226, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ~~~~~~~~~~~~~^
+        link,
+        ^^^^^
+    ...<3 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 318, in __init__
+    super().__init__(
+    ~~~~~~~~~~~~~~~~^
+        link=link,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        version=version,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 161, in __init__
+    self.dist = self._prepare()
+                ~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 238, in _prepare
+    dist = self._prepare_distribution()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 329, in _prepare_distribution
+    return preparer.prepare_linked_requirement(self._ireq, parallel_builds=True)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 543, in prepare_linked_requirement
+    return self._prepare_linked_requirement(req, parallel_builds)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 658, in _prepare_linked_requirement
+    dist = _get_prepared_distribution(
+        req,
+    ...<3 lines>...
+        self.check_build_deps,
+    )
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/operations/prepare.py", line 77, in _get_prepared_distribution
+    abstract_dist.prepare_distribution_metadata(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        build_env_installer, build_isolation, check_build_deps
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 55, in prepare_distribution_metadata
+    self._install_build_reqs(build_env_installer)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 132, in _install_build_reqs
+    build_reqs = self._get_build_requires_wheel()
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/distributions/sdist.py", line 107, in _get_build_requires_wheel
+    return backend.get_requires_for_build_wheel()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_internal/utils/misc.py", line 694, in get_requires_for_build_wheel
+    return super().get_requires_for_build_wheel(config_settings=cs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 196, in get_requires_for_build_wheel
+    return self._call_hook(
+           ~~~~~~~~~~~~~~~^
+        "get_requires_for_build_wheel", {"config_settings": config_settings}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/opt/certbot/lib/python3.13/site-packages/pip/_vendor/pyproject_hooks/_impl.py", line 402, in _call_hook
+    raise BackendUnavailable(
+    ...<4 lines>...
+    )
+pip._vendor.pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+
+[Certbot  ] › ▶  start     Installing rfc2136...
+[Certbot  ] › ☒  complete  Installed rfc2136
+[Certbot  ] › ▶  start     Installing rockenstein...
+[Certbot  ] › ☒  complete  Installed rockenstein
+[Certbot  ] › ▶  start     Installing route53...
+[Certbot  ] › ☒  complete  Installed route53
+[Certbot  ] › ▶  start     Installing simply...
+[Certbot  ] › ☒  complete  Installed simply
+[Certbot  ] › ▶  start     Installing spaceship...
+[Certbot  ] › ☒  complete  Installed spaceship
+[Certbot  ] › ▶  start     Installing strato...
+[Certbot  ] › ☒  complete  Installed strato
+[Certbot  ] › ▶  start     Installing selectelv2...
+[Certbot  ] › ☒  complete  Installed selectelv2
+[Certbot  ] › ▶  start     Installing timeweb...
+[Certbot  ] › ☒  complete  Installed timeweb
+[Certbot  ] › ▶  start     Installing transip...
+[Certbot  ] › ☒  complete  Installed transip
+[Certbot  ] › ▶  start     Installing tencentcloud...
+[Certbot  ] › ☒  complete  Installed tencentcloud
+[Certbot  ] › ▶  start     Installing vultr...
+[Certbot  ] › ☒  complete  Installed vultr
+[Certbot  ] › ▶  start     Installing websupport...
+[Certbot  ] › ☒  complete  Installed websupport
+[Certbot  ] › ▶  start     Installing wedos...
+[Certbot  ] › ☒  complete  Installed wedos
+[Certbot  ] › ▶  start     Installing edgedns...
+[Certbot  ] › ☒  complete  Installed edgedns
+[Certbot  ] › ▶  start     Installing zoneedit...
+[Certbot  ] › ☒  complete  Installed zoneedit
+[Certbot  ] › ✖  error     Some plugins failed to install. Please check the logs above. Failing plugins: 
+ - acmedns
+ - baidu
+ - ddnss
+ - dnsmulti
+ - dnspod
+ - easydns
+ - he-ddns
+ - namecheap
+ - nicru
+ - ovh
+ - powerdns
+ - regru
+root@nginxproxymanager:~# 

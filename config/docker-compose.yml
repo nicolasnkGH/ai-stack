@@ -1,15 +1,16 @@
 services:
+  # Redis: Handles sessions and UI caching.
   redis:
-    # Redis instance for caching and session management
     image: redis:7-alpine
     container_name: ai-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - /mnt/ai/redis:/data
+      # PERFORMANCE: Moved to local SSD to eliminate session/UI latency.
+      - /opt/ai/redis:/data
 
+  # SearXNG: Privacy-focused search engine for Web RAG.
   searxng:
-    # Web search engine using SearXNG for information retrieval
     image: searxng/searxng:latest
     container_name: ai-searxng
     restart: unless-stopped
@@ -21,8 +22,8 @@ services:
       - /mnt/ai/searxng:/etc/searxng
       - /mnt/ai/searxng/settings.yml:/etc/searxng/settings.yml:ro
 
+  # TTS: Voice responses for Open WebUI.
   tts:
-    # Text-to-Speech service using OpenedAI-Speech
     image: ghcr.io/matatonic/openedai-speech:latest
     container_name: ai-tts
     restart: unless-stopped
@@ -32,42 +33,88 @@ services:
       - /mnt/ai/tts/voices:/app/voices
       - /mnt/ai/tts/config:/app/config
 
+  # Ollama: Local LLM Engine.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ai-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      # PERFORMANCE: Models kept on local SSD to avoid 1Gbps network bottleneck
+      # during initial load into VRAM on the RTX 3090 Ti.
+      - /opt/ai/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # Open WebUI: Unified frontend for LLMs, RAG, and Image Gen.
   open-webui:
-    # Main UI and user system for interacting with LLMs, images, and other services
     image: ghcr.io/open-webui/open-webui:main
     container_name: ai-openwebui
     restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
-      # Native Ollama on the VM host
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
-      # Web search via SearXNG (self-hosted)
+      # INTERNAL LINK: Direct container-to-container communication.
+      - OLLAMA_BASE_URL=http://ollama:11434
+      
+      # UI PERFORMANCE & CACHING:
+      - ENABLE_BASE_MODELS_CACHE=True
+      - MODELS_CACHE_TTL=300
+      - ENABLE_QUERIES_CACHE=True
+      - CHAT_RESPONSE_STREAM_DELTA_CHUNK_SIZE=7
+      - RAG_SYSTEM_CONTEXT=True
+
+      # WEB SEARCH (SearXNG):
       - ENABLE_WEB_SEARCH=true
       - WEB_SEARCH_ENGINE=searxng
       - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
       - ENABLE_RAG_WEB_SEARCH=true
       - WEB_SEARCH_RESULT_LIMIT=5
       - WEB_SEARCH_TIMEOUT=12
-      # WebUI URL (accessing over HTTPS via Cloudflare Tunnel)
-      - WEBUI_URL=https://ai.YOUR.DOMAIN  # Necessary for TTS to work over HTTPS
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+
+      # GOOGLE DRIVE: Loaded via .env for security.
+      - ENABLE_GOOGLE_DRIVE_INTEGRATION=True
+      - GOOGLE_DRIVE_CLIENT_ID=${GOOGLE_DRIVE_CLIENT_ID}
+      - GOOGLE_DRIVE_API_KEY=${GOOGLE_DRIVE_API_KEY}
+      - GOOGLE_REDIRECT_URI=https://YOUR_DOMAIN.com # CHANGE THIS TO YOUR ACTUAL DOMAIN
+      - WEBUI_URL=https://YOUR_DOMAIN.com # CHANGE THIS TO YOUR ACTUAL DOMAIN
     depends_on:
       - searxng
       - tts
+      - ollama
     volumes:
+      # HYBRID STORAGE: Large assets (uploads) stay on high-capacity NFS.
       - /mnt/ai/openwebui:/app/backend/data
+      # PERFORMANCE: SQLite DB on local SSD for snappy interface response.
+      - /opt/ai/openwebui/webui.db:/app/backend/data/webui.db
 
+  # ComfyUI: Advanced node-based Stable Diffusion.
   comfyui:
-    # Image generation service using ComfyUI
     image: yanwk/comfyui-boot:cu124-slim
     container_name: ai-comfyui
     restart: unless-stopped
+    command: >
+      bash -c "pip install --upgrade comfy-aimdo comfyui-frontend-package && bash /runner-scripts/entrypoint.sh"
     ports:
       - "8188:8188"
-    volumes:
-      - /mnt/ai/comfyui/root:/root
     environment:
-      - CLI_ARGS=--listen 0.0.0.0 --port 8188
-    gpus: all
+      - CLI_ARGS=--listen 0.0.0.0 --port 8188 --disable-cuda-malloc
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      # CONFIGS & OUTPUTS: Safe on the 977GB NFS share.
+      - /mnt/ai/comfyui/root/ComfyUI:/root/ComfyUI
+      - /mnt/ai/comfyui/output:/root/ComfyUI/output
+      # PERFORMANCE: Massive model files on local SSD to avoid GPU starvation.
+      - /opt/ai/comfyui/models:/root/ComfyUI/models
