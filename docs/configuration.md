@@ -1,110 +1,75 @@
-# Configuration Guide
+## Service Configurations and Optimizations
 
-This document details the precise service configurations and storage optimizations for the Private AI Stack as defined in the current `docker-compose.yml`.
+This document details the precise service configurations and storage optimizations for the Private AI Stack, reflecting the current **Hybrid Storage** model and **Containerized Ollama** architecture.
 
-## 1. Service Environment Variables
+### 1. Service Environment Variables
 
-The following variables are explicitly configured to manage service interaction and external access via your Cloudflare Tunnel.
+Configurations are now managed via a centralized `.env` file to support portability and security.
 
 ### Open WebUI (`ai-openwebui`)
 
-Directs Open WebUI to the native Ollama service running on the VM host (outside Docker).
-```bash
-- OLLAMA_BASE_URL=http://host.docker.internal:11434
-```
+*   **Ollama Connection:** Directs Open WebUI to the containerized Ollama service within the Docker network.
 
-Enables web search and RAG-based retrieval using the internal SearXNG container.
-```bash
-- ENABLE_WEB_SEARCH=true
-- WEB_SEARCH_ENGINE=searxng
-- SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
-- ENABLE_RAG_WEB_SEARCH=true
-- WEB_SEARCH_RESULT_LIMIT=5
-- WEB_SEARCH_TIMEOUT=12
-```
+    ```bash
+    OLLAMA_BASE_URL=http://ollama:11434
+    ```
 
-Critical for TTS and browser audio playback.
-Because access is through Cloudflare Tunnel over HTTPS, this must match the public HTTPS URL or browsers will block audio due to mixed-content rules.
-```bash
-- WEBUI_URL=https://ai.YOUR.DOMAIN
-```
+*   **Performance Caching:** Optimizes UI responsiveness and reduces redundant inference.
 
-Allows containers to reach services running on the VM host (Ollama).
-```bash
-extra_hosts:
-  - "host.docker.internal:host-gateway"
-```
+    ```bash
+    ENABLE_BASE_MODELS_CACHE=True
+    ENABLE_QUERIES_CACHE=True
+    ```
 
-### SearXNG (`ai-searxng`)
+*   **Web Search (SearXNG):** Enables real-time RAG-based retrieval.
 
-Defines the public-facing base URL for SearXNG.
-```bash
-- BASE_URL=http://localhost:8088/
-```
-Internally, Open WebUI talks to it using the Docker service name:
+    ```bash
+    ENABLE_WEB_SEARCH=true
+    SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
+    ```
 
-Access paths:
-- External (LAN): http://VM-IP:8088
-- Internal (Docker network): http://searxng:8080
+*   **Public URL:** Must match your Cloudflare Tunnel domain to ensure audio/TTS playback.
 
-### ComfyUI (`ai-comfyui`)
+    ```bash
+    WEBUI_URL=https://YOUR.DOMAIN.HERE
+    ```
 
-Allows access from other containers and from the network.
-```bash
-- CLI_ARGS=--listen 0.0.0.0 --port 8188
-```
-Passes the RTX 3090 Ti directly to ComfyUI.
-```
-gpus: all
-```
+### Google Drive Integration (Optional)
 
----
+*   **Opt-in Setup:** Requires a Google Cloud Project and API keys.
 
-> [!IMPORTANT]
->
-> **Security Note:** The current configuration stores all variables directly in the docker-compose.yml. If you transition to using sensitive data (e.g., specific API keys), it is a best practice to move those values to a `.env` file to prevent accidental exposure when pushing to GitHub.
-
+    ```bash
+    # ENABLE_GOOGLE_DRIVE_INTEGRATION=True
+    # GOOGLE_DRIVE_CLIENT_ID=${GOOGLE_DRIVE_CLIENT_ID}
+    # GOOGLE_DRIVE_API_KEY=${GOOGLE_DRIVE_API_KEY}
+    ```
 ---
 
 
-## 2. ZFS Persistence & Volume Mapping
+## 2. Hybrid Persistence & Volume Mapping
 
-Persistence is managed through bind mounts to an NFS share mounted at /mnt/ai, backed by a ZFS dataset on the NAS.
+The stack utilizes a tiered storage strategy: **Local SSD** for I/O performance and **NFS/ZFS** for high-capacity asset storage.
 
-
-| **Service** | **Host Path (NFS)** | **Container Path** | **Purpose** |
-| --- | --- | --- | --- |
-| **Redis** | `/mnt/ai/redis` | `/data` | Session and cache persistence. |
-| **SearXNG** | `/mnt/ai/searxng` | `/etc/searxng` | Configuration and search settings. |
-| **TTS** | `/mnt/ai/tts/voices` | `/app/voices` | Stored voice profiles. |
-| **TTS** | `/mnt/ai/tts/config` | `/app/config` | TTS mapping config (voice_to_speaker.yaml). |
-| **Open WebUI** | `/mnt/ai/openwebui` | `/app/backend/data` | Database and user data. |
-| **ComfyUI** | `/mnt/ai/comfyui/root` | `/root` | Models, outputs, and workflows. |
-
-### Storage Tuning
-
-To support these high-volume mounts, your ZFS dataset on the NAS should be optimized for the large file patterns typical of AI models:
-*   **Recordsize (1M):** Minimizes metadata overhead for multi-gigabyte LLM and Safetensors files.
-    
-*   **atime (off):** Eliminates unnecessary write traffic when models are read into VRAM.
+| **Service** | **Host Path (Local SSD)** | **Host Path (NFS)** | **Container Path** | **Purpose** |
+| --- | --- | --- | --- | --- |
+| **Ollama** | `/opt/ai/ollama` | — | `/root/.ollama` | **Hot**: Performance-critical model weights. |
+| **Open WebUI** | `/opt/ai/openwebui/webui.db` | — | `/app/backend/data/webui.db` | **Hot**: Fast UI database response. |
+| **Open WebUI** | — | `/mnt/ai/openwebui` | `/app/backend/data` | **Cold**: Large user uploads & RAG documents. |
+| **ComfyUI** | `/opt/ai/comfyui/models` | — | `/root/ComfyUI/models` | **Hot**: Rapid model loading into VRAM. |
+| **ComfyUI** | — | `/mnt/ai/comfyui/output` | `/root/ComfyUI/output` | **Cold**: Generated high-resolution image assets. |
+| **Redis** | `/opt/ai/redis` | — | `/data` |  |
 
 ---
 
 ## 3. GPU Hardware Integration
 
-* **ComfyUI:** Uses `gpus: all` to access the RTX 3090 Ti from inside Docker for image generation.
+The **RTX 3090 Ti (24GB)** is passed through Proxmox to the Ubuntu VM and shared across containers.
 
-* **Ollama:** Runs natively on the VM and uses the RTX 3090 Ti directly via the NVIDIA driver and CUDA.
-  Docker is not involved in Ollama’s GPU access.
+*   **Ollama & ComfyUI:** Both utilize `deploy.resources.reservations` for direct GPU access.
 
-* **Open WebUI:** Does not use the GPU directly. It only connects to Ollama over the network using:
+*   **VRAM Management:** Main models use a `keep_alive` of **5m to 10m** to ensure VRAM is released for heavy image generation workflows.
 
-```bash
-extra_hosts:
-  - "host.docker.internal:host-gateway"
-```
-
-Note: `gpus: all` requires NVIDIA drivers + NVIDIA Container Toolkit installed.
+*   **Driver Requirements:** The host requires NVIDIA 580.95+ and the NVIDIA Container Toolkit.
 
 
 ---
