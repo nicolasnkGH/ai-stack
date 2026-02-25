@@ -13,124 +13,118 @@ A visual representation of the system architecture, showing the relationships be
 graph TD
 
 subgraph External_Network["External Access"]
-  User["User"] --> CF["Cloudflare Access + Tunnel + MFA"]
-end
-
-subgraph Management["Management & Monitoring"]
-  ZBX["Zabbix Server (External Host)"]
-end
-
-subgraph Proxmox_Node_CF["Proxmox Node - Cloudflare"]
-  subgraph CF_LXC["Cloudflare Tunnel LXC"]
-    CFT["cloudflared"]
-  end
+    User["User"] --> CF["Cloudflare Access + Tunnel + MFA"]
 end
 
 subgraph Proxmox_Node_AI["Proxmox Node - AI Host"]
-  subgraph Hardware["Hardware"]
-    GPU["NVIDIA RTX 3090 Ti 24GB"]
-    CPU["Ryzen 9 9950X 16C 32T"]
-  end
-
-  subgraph AI_VM["Ubuntu 24.04 VM - AI Stack"]
-    subgraph NFS_Mount["NFS Mount"]
-      MNT["/mnt/ai"]
-      OWUI_DATA["/mnt/ai/openwebui -> app data"]
-      CUI_DATA["/mnt/ai/comfyui -> root"]
-      TTS_DATA["/mnt/ai/tts"]
-      SX_DATA["/mnt/ai/searxng"]
-      RD_DATA["/mnt/ai/redis"]
+    subgraph Hardware["Hardware"]
+        GPU["NVIDIA RTX 3090 Ti 24GB"]
+        CPU["Ryzen 9 9950X 16C 32T"]
     end
 
-    WUI["Open WebUI"]
-    AGENT["Zabbix Agent 2"]
+    subgraph AI_VM["Ubuntu 24.04 VM - AI Stack"]
+        subgraph Local_SSD["Local SSD (/opt/ai)"]
+            DB["Open WebUI SQLite DB"]
+            MODELS["Ollama & Comfy Models"]
+            RD_CACHE["Redis Session Cache"]
+        end
 
-    subgraph Compose["Docker Compose"]
-      WUI --> SX["SearXNG"]
-      WUI --> TTS["OpenedAI Speech"]
-      WUI --> RD["Redis"]
-      WUI --> CUI["ComfyUI"]
+        subgraph NFS_Mount["NFS Mount (/mnt/ai)"]
+            OWUI_UPLOADS["WebUI User Uploads"]
+            CUI_OUT["ComfyUI Image Outputs"]
+            TTS_DATA["TTS Voice Models"]
+            SX_DATA["SearXNG Config"]
+        end
+
+        WUI["Open WebUI"]
+        AGENT["Zabbix Agent 2"]
+
+        subgraph Compose["Docker Compose"]
+            WUI --> SX["SearXNG"]
+            WUI --> TTS["OpenedAI Speech"]
+            WUI --> RD["Redis"]
+            WUI --> CUI["ComfyUI"]
+            WUI --> OLL["Ollama (Containerized)"]
+        end
     end
-
-    WUI --> OLL["Ollama"]
-  end
 end
 
 subgraph Storage["Storage Layer"]
-  NAS["ZFS RAIDZ1 NAS"]
-  NFS["NFS Export"]
+    NAS["ZFS RAIDZ1 NAS"]
+    NFS["NFS Export"]
 end
 
-%% Network & Logical Connections
-CF --> CFT
-CFT --> WUI
-
-%% Monitoring Links
-ZBX -- "ICMP/SNMP" --- Proxmox_Node_AI
-ZBX -- "Active Checks" --- AGENT
-ZBX -- "HTTP Check" --- WUI
-
-%% Hardware & Storage Links
+%% Logical Connections
+CF --> WUI
 GPU --> AI_VM
 CUI --> GPU
 OLL --> GPU
 
+%% Storage Links
 AI_VM --> NFS
 NFS --> NAS
-
-MNT --> OWUI_DATA
-MNT --> CUI_DATA
-MNT --> TTS_DATA
-MNT --> SX_DATA
-MNT --> RD_DATA
+Local_SSD --- AI_VM
 
 ```
 ---
 
-## 🛠️ Storage Reliability & Maintenance
+## ⚡ Hybrid Storage Strategy
 
-Details on how data integrity is ensured through regular ZFS scrubbing, atomic snapshots, and snapshot retention to protect against data corruption and faults.
+To solve the I/O bottleneck inherent in running AI models over a 1Gbps network (NFS), this stack utilizes a tiered storage approach:
 
-The ZFS pool (`RAIDZ1`) on the NAS serves as the single source of truth for the entire stack's persistent state.
+### 🚀 Performance Tier (Local SSD)
 
-- **Data Integrity (Scrubbing):** A monthly ZFS scrub is scheduled on the NAS to detect and repair silent data corruption (bit-rot).
-- **Atomic Snapshots:** Before any major stack upgrade or configuration change, an atomic ZFS snapshot is taken of the `/mnt/ai` dataset. This allows for a near-instantaneous rollback of all model weights, databases, and application configs simultaneously.
-- **Snapshot Retention:** Using a simple cron-based script, snapshots are retained on a `7-day / 4-week / 3-month` rotation to balance protection and storage capacity.
+*   **Path**: `/opt/ai`
+*   **Contents**: Ollama/ComfyUI model weights, the Open WebUI SQLite database, and Redis cache files.
+*   **Benefit**: Eliminates "Database Locked" errors and GPU starvation caused by slow network model loading.
+
+### 📦 Capacity Tier (NFS/NAS)
+
+*   **Path**: `/mnt/ai`
+*   **Contents**: User-uploaded documents for RAG, generated image outputs, and TTS voice assets.
+*   **Benefit**: Leverages the **977GB** RAIDZ1 capacity for bulk data without impacting UI responsiveness.
 
 ---
 
 ## ⚡ Hypervisor-Level Tuning
 
-Optimizations made at the hypervisor level (Proxmox) to achieve near-metal performance for the NVIDIA RTX 3090 Ti GPU and Ryzen 9950X CPU, including Hugepages and IOMMU isolation.
+To achieve near-metal performance for the NVIDIA RTX 3090 Ti GPU and Ryzen 9950X CPU, the following optimizations are applied at the Proxmox hypervisor level, including Hugepages and IOMMU isolation:
 
-To achieve near-metal performance for the RTX 3090 Ti and the Ryzen 9950X, the following Proxmox optimizations are applied:
-
-- **CPU Type (Host):** The VM CPU is set to `host` rather than `kvm64`. This passes through the specific instruction sets (AVX, AVX2, and AVX-512) required for high-performance tensor operations in LLMs and vision models.
-- **Hugepages:** 2MB Hugepages are enabled on the Proxmox host to reduce the memory management overhead for the AI VM, significantly improving throughput for large VRAM-intensive models like Gemma 27B.
-- **IOMMU Isolation:** The GPU and its associated audio controller are isolated in their own IOMMU group using `pcie_acs_override` where necessary to prevent interference with other PCIe devices.
+- **CPU Type (Host):** Setting the VM CPU type to `host` instead of `kvm64` allows direct access to instruction sets (AVX, AVX2, and AVX-512) crucial for high-performance tensor operations in LLMs and vision models.
+- **Hugepages:** Enabling 2MB Hugepages on the Proxmox host reduces memory management overhead, significantly improving throughput for large, VRAM-intensive models like Gemma 27B.
+- **IOMMU Isolation:**  The GPU and its associated audio controller are isolated within their own IOMMU group using `pcie_acs_override` to prevent interference with other PCIe devices.
 
 ---
 
 ## 📊 External Observability & Troubleshooting
 
-A description of how monitoring is decoupled from the primary cluster to provide out-of-band alerting and fault tolerance through Zabbix integration, with focus on infrastructure, VM/Agent, GPU, connectivity, service integrity, and troubleshooting hierarchy. 
-
-Monitoring is decoupled from the primary cluster to provide out-of-band alerting and fault tolerance.
+Monitoring is decoupled from the primary cluster to provide out-of-band alerting and fault tolerance through a dedicated Zabbix integration.
 
 ### 1. Out-of-Band Monitoring (Zabbix)
 A dedicated Zabbix server operates on independent hardware outside the Proxmox cluster.
-* **Infrastructure:** SNMP/ICMP tracking of host thermals, fan speeds, and ZFS pool health.
-* **VM/Agent:** Zabbix Agent 2 tracks memory pressure, NFS I/O latency, and Docker process states.
-* **GPU:** `nvidia-smi` integration for VRAM utilization and thermal throttling alerts.
+* **Infrastructure**: SNMP/ICMP tracking of host thermals, fan speeds, and ZFS pool health.
+* **VM/Agent**: Zabbix Agent 2 tracks memory pressure, NFS I/O latency, and Docker process states.
+* **GPU**: `nvidia-smi` integration for VRAM utilization and thermal throttling alerts.
+* **Container Metrics**: Tracks health and restart loops for the `ai-ollama` and `ai-openwebui` containers.
 
 ### 2. Alerting & Availability
-* **Connectivity:** Monitors latency between the Cloudflare LXC and the external monitoring node.
-* **Service Integrity:** External HTTP status checks on the Open WebUI endpoint to verify the full network chain.
+* **Connectivity**: Monitors latency between the Cloudflare LXC and the external monitoring node.
+* **Service Integrity**: External HTTP status checks on the Open WebUI endpoint to verify the full network chain.
+
+
 
 ### 3. Troubleshooting Hierarchy
-Troubleshooting follows a tiered approach to isolate failures across the stack:
-1. **Application:** `docker compose logs -f` for container-level tracebacks.
-2. **System:** `journalctl -u ollama` for native LLM service faults.
-3. **Hardware:** `dmesg` on Proxmox host to identify PCIe/VFIO resets or GPU crashes.
+The troubleshooting flow is now centralized within the Docker environment to quickly isolate failures across the stack:
+
+1. **Application & LLM Engine**: 
+   * `docker compose logs -f open-webui` — For frontend/API issues.
+   * `docker compose logs -f ollama` — For model loading or inference errors.
+2. **Container Runtime**:
+   * `docker stats` — To identify resource contention or memory leaks.
+   * `docker inspect ai-ollama` — To verify GPU passthrough and volume mounts.
+3. **Hardware & Hypervisor**:
+   * `dmesg` or `journalctl -xe` on the Proxmox host to identify PCIe/VFIO resets or GPU hardware crashes.
 
 ---
+*Maintained by Nicolas Teixeira.*
+
