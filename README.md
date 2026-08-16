@@ -8,6 +8,7 @@ A self-hosted, private AI system (ChatGPT-style) running on Proxmox with Docker,
 -   **[Installation](./docs/installation.md)** — Host/VM prerequisites and setup
 -   **[Configuration](./docs/configuration.md)** — Service wiring, storage (NFS/ZFS), tuning
 -   **[Usage Guide](./docs/usage.md)** — Operator's manual (daily workflows)
+-   **[Engineering Decisions](#-engineering-decisions--continuous-improvements)** — Why things were built the way they were
 
 ## Repository Layout
 
@@ -63,17 +64,65 @@ Enterprise-grade protection for a 100% private AI experience.
 ## 🧱 Architecture (high-level)
 
 ```text
-User → Cloudflare Tunnel (+MFA) → Open WebUI
-                               ├─ Ollama (Dockerized LLM Engine)
-                               ├─ SearXNG (web search)
-                               ├─ OpenedAI-Speech (TTS)
-                               ├─ Whisper (STT)
-                               └─ ComfyUI (image generation, GPU)
-                               └─ [Optional] Google Drive (External Docs)
+┌──────────────────────┐     ┌────────────────────────────┐
+│ AI Agents / Clients  │────▶│ LiteLLM Proxy (:4000)      │
+│ (OpenAI-compatible)  │     │ Unified OpenAI endpoint    │
+└──────────────────────┘     └──────────────┬─────────────┘
+                                             │
+                                             ├──▶ llama-36b ──▶ Primary NVIDIA server (:8081)
+                                             │                  host: 10.0.0.10
+                                             ├──▶ llama-9b  ──▶ Secondary ROCm server (:8083)
+                                             │                  host: 10.0.0.20  (llm-server2)
+                                             └──▶ llama-4b  ──▶ Secondary ROCm server (:8082)
+                                                               host: 10.0.0.20  (llm-server2)
 
+┌──────────────────────┐
+│ Open WebUI (:8080)   │──▶ LiteLLM Proxy (:4000)
+└──────────┬───────────┘
+           ├──▶ Redis  :6379   (sessions/cache)
+           └──▶ SearXNG:8088   (web search)
+
+External access: User → Cloudflare Tunnel (+MFA) → ai-api.example.com → Open WebUI / LiteLLM
 Storage: VM mounts NAS dataset via NFS at /mnt/ai (persistent volumes)
 ```
+
+> **Backends:** The primary server runs the large NVIDIA-accelerated model (`llama-36b`). A secondary ROCm-based server (`llm-server2`) hosts two smaller models (`llama-9b`, `llama-4b`). LiteLLM aliases route each model name to the correct backend.
+
 Full details: [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blob/main/docs/architecture.md)
+
+## 🔧 Engineering Decisions & Continuous Improvements
+
+This project is under active development. Below are notable engineering decisions made over time and *why* they were made — not just what was changed.
+
+### Dockerized LLM Backend vs. Raw llama.cpp
+
+**Before:** The LLM inference layer was run by invoking `llama.cpp` binaries directly on the host — compiled manually, managed by hand, and tightly coupled to the host OS and driver versions.
+
+**After:** The inference backend is now fully containerized via a **custom Dockerfile** wrapping the llama.cpp server (`llama-server`).
+
+**Why it matters:**
+| Concern | Raw llama.cpp on host | Dockerized (custom Dockerfile) |
+|---|---|---|
+| **Reproducibility** | Rebuild on every host change | Identical environment everywhere |
+| **GPU backend switching** | Recompile with different CMake flags | Swap base image (CUDA → ROCm) |
+| **Update workflow** | Manual binary replacement | `docker compose build --no-cache` |
+| **Multi-server scaling** | Complex per-host setup | Same Compose definition, different host |
+| **Performance tuning** | Flags scattered across shell scripts | Consolidated in Dockerfile `CMD` / env |
+| **Inference speed** | Dependent on host compiler optimization | Compiled with `-DLLAMA_CUDA_F16=ON`, `LLAMA_BLAS`, and arch-specific flags baked in — measurably faster token throughput |
+
+**Observed gains (same hardware, same model):** switching to a GPU-optimized container image with proper CUDA flags baked in produced a significant increase in tokens/sec compared to a default host build — without any model or hardware changes.
+
+### Dual-Backend LLM Routing (LiteLLM)
+
+**Before:** A single Ollama instance served all models from one machine.
+
+**After:** A LiteLLM proxy routes requests across two servers — a primary NVIDIA node and a secondary ROCm node — with named model aliases. Clients (Open WebUI, API consumers) call a single endpoint and never need to know which physical backend handles the request.
+
+**Why it matters:** This design enables zero-downtime model swaps, load distribution, and adding/removing backends without touching client config. It's also the foundation for A/B testing models across hardware.
+
+> See [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blob/main/docs/architecture.md) for full routing details.
+
+---
 
 ## ⚙️ Performance Notes (rule of thumb)
 
@@ -95,14 +144,55 @@ Full details: [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blo
    sudo mkdir -p /opt/ai/{ollama,comfyui/models,open-webui,redis}
    sudo chown -R 1000:1000 /opt/ai
    ```
-2. **Configure Secrets - Optional for Google Drive Integration**:
+2. **Configure Secrets**:
    ```bash
-   # Edit .env with your Google Drive API keys
+   cp .env.example .env
+   # Edit .env — fill in placeholders such as:
+   #   LITELLM_MASTER_KEY=<your-secret-key>
+   #   CF_ACCESS_CLIENT_ID=<CF_ACCESS_CLIENT_ID>
+   #   CF_ACCESS_CLIENT_SECRET=<CF_ACCESS_CLIENT_SECRET>
+   #   LITELLM_PRIMARY_URL=http://10.0.0.10:8081
+   #   LITELLM_SECONDARY_URL=http://10.0.0.20:8082
    ```
 3. **Launch:**
    ```bash
+   # Pull pre-built images (Open WebUI, Redis, SearXNG, etc.)
+   docker compose pull
+
+   # Build services that have a local Dockerfile (e.g. LiteLLM with custom config)
+   docker compose build
+
+   # Start the full stack
    docker compose up -d
    ```
+
+### 🔄 Recommended Update Sequence
+```bash
+# 1. Pull latest upstream images
+docker compose pull
+
+# 2. Rebuild any locally customized services
+docker compose build --no-cache litellm
+
+# 3. Restart the stack
+docker compose up -d --remove-orphans
+```
+
+> **`pull` vs `build`:** Services that ship from a registry (Open WebUI, Redis, SearXNG) are updated with `docker compose pull`. Services with a local `Dockerfile` or custom entrypoint (LiteLLM config, custom proxy layer) require `docker compose build`. Always run both when unsure.
+
+### 🛠️ Troubleshooting Stale Builds
+If a service behaves unexpectedly after an update (e.g. old config still active):
+```bash
+# Force a clean rebuild of a specific service
+docker compose build --no-cache <service-name>
+
+# Remove the old container and restart
+docker compose rm -sf <service-name>
+docker compose up -d <service-name>
+
+# Check logs for the service
+docker compose logs -f <service-name>
+```
 
 
 ### ☁️ Optional: Google Drive Integration

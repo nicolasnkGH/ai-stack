@@ -6,7 +6,7 @@ This document details the hardware and software orchestration of the Private AI 
 
 ## High-Level Diagram
 
-A visual representation of the system architecture, showing the relationships between components such as Cloudflare, Proxmox, Docker Compose, and ZFS.
+A visual representation of the system architecture, showing the relationships between components such as Cloudflare, LiteLLM, dual-backend LLM servers, Docker Compose, and ZFS.
 
 
 ```mermaid
@@ -14,39 +14,36 @@ graph TD
 
 subgraph External_Network["External Access"]
     User["User"] --> CF["Cloudflare Access + Tunnel + MFA"]
+    CF --> FQDN["ai-api.example.com"]
 end
 
-subgraph Proxmox_Node_AI["Proxmox Node - AI Host"]
-    subgraph Hardware["Hardware"]
-        GPU["NVIDIA RTX 3090 Ti 24GB"]
-        CPU["Ryzen 9 9950X 16C 32T"]
+subgraph AI_VM["Ubuntu VM - AI Stack"]
+    FQDN --> WUI["Open WebUI (:8080)"]
+    FQDN --> LITELLM["LiteLLM Proxy (:4000)\nUnified OpenAI-compatible endpoint"]
+
+    WUI --> LITELLM
+    WUI --> SX["SearXNG (:8088)"]
+    WUI --> RD["Redis (:6379)"]
+
+    subgraph Local_SSD["Local SSD (/opt/ai)"]
+        DB["Open WebUI SQLite DB"]
+        RD_CACHE["Redis Session Cache"]
     end
 
-    subgraph AI_VM["Ubuntu 24.04 VM - AI Stack"]
-        subgraph Local_SSD["Local SSD (/opt/ai)"]
-            DB["Open WebUI SQLite DB"]
-            MODELS["Ollama & Comfy Models"]
-            RD_CACHE["Redis Session Cache"]
-        end
-
-        subgraph NFS_Mount["NFS Mount (/mnt/ai)"]
-            OWUI_UPLOADS["WebUI User Uploads"]
-            CUI_OUT["ComfyUI Image Outputs"]
-            TTS_DATA["TTS Voice Models"]
-            SX_DATA["SearXNG Config"]
-        end
-
-        WUI["Open WebUI"]
-        AGENT["Zabbix Agent 2"]
-
-        subgraph Compose["Docker Compose"]
-            WUI --> SX["SearXNG"]
-            WUI --> TTS["OpenedAI Speech"]
-            WUI --> RD["Redis"]
-            WUI --> CUI["ComfyUI"]
-            WUI --> OLL["Ollama (Containerized)"]
-        end
+    subgraph NFS_Mount["NFS Mount (/mnt/ai)"]
+        OWUI_UPLOADS["WebUI User Uploads"]
+        CUI_OUT["ComfyUI Image Outputs"]
+        TTS_DATA["TTS Voice Models"]
     end
+end
+
+subgraph Primary_Server["Primary LLM Server (10.0.0.10)"]
+    NVIDIA_SVC["llama-36b service (:8081)\nNVIDIA GPU accelerated"]
+end
+
+subgraph Secondary_Server["Secondary LLM Server (10.0.0.20 — llm-server2)"]
+    ROCM_9B["llama-9b service (:8083)\nROCm GPU accelerated"]
+    ROCM_4B["llama-4b service (:8082)\nROCm GPU accelerated"]
 end
 
 subgraph Storage["Storage Layer"]
@@ -54,18 +51,26 @@ subgraph Storage["Storage Layer"]
     NFS["NFS Export"]
 end
 
-%% Logical Connections
-CF --> WUI
-GPU --> AI_VM
-CUI --> GPU
-OLL --> GPU
+%% LiteLLM routing
+LITELLM -->|"alias: llama-36b"| NVIDIA_SVC
+LITELLM -->|"alias: llama-9b"| ROCM_9B
+LITELLM -->|"alias: llama-4b"| ROCM_4B
 
 %% Storage Links
 AI_VM --> NFS
 NFS --> NAS
 Local_SSD --- AI_VM
-
 ```
+
+### LiteLLM Alias Routing
+
+| Model Alias | Backend Host | Port | Accelerator |
+|---|---|---|---|
+| `llama-36b` | `10.0.0.10` | `8081` | NVIDIA GPU (primary) |
+| `llama-9b` | `10.0.0.20` | `8083` | ROCm GPU (llm-server2) |
+| `llama-4b` | `10.0.0.20` | `8082` | ROCm GPU (llm-server2) |
+
+> **Note:** Replace `10.0.0.10` and `10.0.0.20` with your own private network addresses. Replace `ai-api.example.com` with your actual Cloudflare-tunneled domain.
 ---
 
 ## ⚡ Hybrid Storage Strategy
