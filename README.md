@@ -63,16 +63,30 @@ Enterprise-grade protection for a 100% private AI experience.
 ## 🧱 Architecture (high-level)
 
 ```text
-User → Cloudflare Tunnel (+MFA) → Open WebUI
-                               ├─ Ollama (Dockerized LLM Engine)
-                               ├─ SearXNG (web search)
-                               ├─ OpenedAI-Speech (TTS)
-                               ├─ Whisper (STT)
-                               └─ ComfyUI (image generation, GPU)
-                               └─ [Optional] Google Drive (External Docs)
+┌──────────────────────┐     ┌────────────────────────────┐
+│ AI Agents / Clients  │────▶│ LiteLLM Proxy (:4000)      │
+│ (OpenAI-compatible)  │     │ Unified OpenAI endpoint    │
+└──────────────────────┘     └──────────────┬─────────────┘
+                                             │
+                                             ├──▶ llama-36b ──▶ Primary NVIDIA server (:8081)
+                                             │                  host: 10.0.0.10
+                                             ├──▶ llama-9b  ──▶ Secondary ROCm server (:8083)
+                                             │                  host: 10.0.0.20  (llm-server2)
+                                             └──▶ llama-4b  ──▶ Secondary ROCm server (:8082)
+                                                               host: 10.0.0.20  (llm-server2)
 
+┌──────────────────────┐
+│ Open WebUI (:8080)   │──▶ LiteLLM Proxy (:4000)
+└──────────┬───────────┘
+           ├──▶ Redis  :6379   (sessions/cache)
+           └──▶ SearXNG:8088   (web search)
+
+External access: User → Cloudflare Tunnel (+MFA) → ai-api.example.com → Open WebUI / LiteLLM
 Storage: VM mounts NAS dataset via NFS at /mnt/ai (persistent volumes)
 ```
+
+> **Backends:** The primary server runs the large NVIDIA-accelerated model (`llama-36b`). A secondary ROCm-based server (`llm-server2`) hosts two smaller models (`llama-9b`, `llama-4b`). LiteLLM aliases route each model name to the correct backend.
+
 Full details: [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blob/main/docs/architecture.md)
 
 ## ⚙️ Performance Notes (rule of thumb)
@@ -95,14 +109,55 @@ Full details: [docs/architecture.md](https://github.com/nicolasnkGH/ai-stack/blo
    sudo mkdir -p /opt/ai/{ollama,comfyui/models,open-webui,redis}
    sudo chown -R 1000:1000 /opt/ai
    ```
-2. **Configure Secrets - Optional for Google Drive Integration**:
+2. **Configure Secrets**:
    ```bash
-   # Edit .env with your Google Drive API keys
+   cp .env.example .env
+   # Edit .env — fill in placeholders such as:
+   #   LITELLM_MASTER_KEY=<your-secret-key>
+   #   CF_ACCESS_CLIENT_ID=<CF_ACCESS_CLIENT_ID>
+   #   CF_ACCESS_CLIENT_SECRET=<CF_ACCESS_CLIENT_SECRET>
+   #   LITELLM_PRIMARY_URL=http://10.0.0.10:8081
+   #   LITELLM_SECONDARY_URL=http://10.0.0.20:8082
    ```
 3. **Launch:**
    ```bash
+   # Pull pre-built images (Open WebUI, Redis, SearXNG, etc.)
+   docker compose pull
+
+   # Build services that have a local Dockerfile (e.g. LiteLLM with custom config)
+   docker compose build
+
+   # Start the full stack
    docker compose up -d
    ```
+
+### 🔄 Recommended Update Sequence
+```bash
+# 1. Pull latest upstream images
+docker compose pull
+
+# 2. Rebuild any locally customized services
+docker compose build --no-cache litellm
+
+# 3. Restart the stack
+docker compose up -d --remove-orphans
+```
+
+> **`pull` vs `build`:** Services that ship from a registry (Open WebUI, Redis, SearXNG) are updated with `docker compose pull`. Services with a local `Dockerfile` or custom entrypoint (LiteLLM config, custom proxy layer) require `docker compose build`. Always run both when unsure.
+
+### 🛠️ Troubleshooting Stale Builds
+If a service behaves unexpectedly after an update (e.g. old config still active):
+```bash
+# Force a clean rebuild of a specific service
+docker compose build --no-cache <service-name>
+
+# Remove the old container and restart
+docker compose rm -sf <service-name>
+docker compose up -d <service-name>
+
+# Check logs for the service
+docker compose logs -f <service-name>
+```
 
 
 ### ☁️ Optional: Google Drive Integration
