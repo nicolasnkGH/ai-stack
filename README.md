@@ -1,90 +1,125 @@
-# AI Stack (Inference-First)
+# AI Stack — Inference Infrastructure for Agent Workloads
 
-Public reference stack for running **local inference endpoints** behind a single **OpenAI-compatible** gateway.
+This repository is a **public, sanitized showcase** of a self-hosted AI platform built for agent and API workflows. It demonstrates how to run a multi-node inference layer behind a single OpenAI-compatible endpoint, operate it with containerized infrastructure, and orchestrate higher-level task execution with human approval gates.
 
-This repo reflects the current direction: agent/API-first usage with `llama.cpp` backends and LiteLLM routing. Legacy UI-heavy/ComfyUI-era workflows are intentionally removed from the primary story.
+## What this project demonstrates
 
-## Architecture (high-level)
+- **Inference infrastructure engineering**: dual-server topology with model placement by hardware profile.
+- **Model routing design**: LiteLLM alias-based routing behind one client-facing API.
+- **Container operations**: mixed pull/build deployment strategy for reproducible updates.
+- **Reliability mindset**: health checks, validation flow, rollback-first operations.
+- **Automation/orchestration**: event-driven Hermes workflow with kanban tracking and Telegram approvals.
 
-```text
-┌──────────────────────┐     ┌────────────────────────────┐
-│ AI Agents / Clients  │────▶│ LiteLLM Proxy (:4000)      │
-│ (OpenAI-compatible)  │     │ Unified OpenAI endpoint    │
-└──────────────────────┘     └──────────────┬─────────────┘
-                                             │
-                                             ├──▶ alias: llama-36b ──▶ Primary NVIDIA host
-                                             │                        http://10.0.0.10:8081
-                                             ├──▶ alias: llama-9b  ──▶ Secondary ROCm host (llm-server2)
-                                             │                        http://10.0.0.20:8083
-                                             └──▶ alias: llama-4b  ──▶ Secondary ROCm host (llm-server2)
-                                                                      http://10.0.0.20:8082
+## Architecture (high level)
+
+```mermaid
+graph TD
+    C[Agents / Clients] --> G[LiteLLM Proxy\nOpenAI-compatible API]
+
+    G -->|alias: llama-36b| P[Primary inference node\nNVIDIA\n10.0.0.10:8081]
+    G -->|alias: llama-9b| S1[Secondary inference node\nROCm\n10.0.0.20:8083]
+    G -->|alias: llama-4b| S2[Secondary inference node\nROCm\n10.0.0.20:8082]
+
+    E[Hermes orchestration] --> G
 ```
 
-> LiteLLM keeps one client-facing endpoint while routing model aliases to the correct backend.
+### Component responsibilities
 
-## Usage model
+| Component | Responsibility |
+| --- | --- |
+| LiteLLM proxy | Single OpenAI-compatible ingress, alias routing, centralized API behavior |
+| Primary node | Hosts larger model service for higher-quality reasoning workloads |
+| Secondary node | Hosts smaller/faster services for routing flexibility and load distribution |
+| Hermes | Event intake, task lifecycle orchestration, approvals, and execution coordination |
 
-- **Inference-first:** Local `llama.cpp` servers provide model endpoints.
-- **Gateway-first:** LiteLLM provides unified auth, routing, and OpenAI-compatible API behavior.
-- **Agent-first:** Primary consumers are agents, automations, and API clients (with optional UI clients).
+## Inference routing model (LiteLLM aliases)
 
-Example endpoint shape:
+| Alias | Backend URL (example) | Typical use |
+| --- | --- | --- |
+| `llama-36b` | `http://10.0.0.10:8081` | Deep reasoning / complex analysis |
+| `llama-9b` | `http://10.0.0.20:8083` | Balanced latency + quality |
+| `llama-4b` | `http://10.0.0.20:8082` | Fast automation and utility tasks |
 
-- Public API: `https://ai-api.example.com/v1`
-- Internal LiteLLM: `http://127.0.0.1:4000/v1`
+Client-facing endpoint shape (example):
 
-## Hermes orchestration (high-level)
+- Public: `https://ai-api.example.com/v1`
+- Internal: `http://127.0.0.1:4000/v1`
 
-Hermes sits above inference and handles operational orchestration:
+## Custom build strategy for llama.cpp inference services
 
-- Receives events/webhooks from external systems
-- Tracks work as tasks on a SQLite-backed kanban board
-- Uses Telegram for human-in-the-loop approvals and notifications
+This stack is not presented as “just running llama.cpp.” The inference layer is operated as **customized container services** with explicit build/runtime choices, for example:
 
-This section is intentionally high-level for public safety.
+- Reproducible Docker build contexts for runtime dependencies.
+- Targeted compile/runtime flags per hardware class (NVIDIA vs ROCm hosts).
+- Separate service images and ports to keep routing, scaling, and updates predictable.
+- Gateway-level aliasing so model/backend changes do not break client integrations.
 
-## Quick start
+## Hermes orchestration workflow (high level)
 
-1. Configure environment values in `.env` (use placeholders only in docs):
-   ```bash
-   cp .env.example .env
-   # Example values:
-   # LITELLM_MASTER_KEY=<replace-me>
-   # LITELLM_PRIMARY_URL=http://10.0.0.10:8081
-   # LITELLM_SECONDARY_URL=http://10.0.0.20:8082
-   # CF_ACCESS_CLIENT_ID=<replace-me>
-   # CF_ACCESS_CLIENT_SECRET=<replace-me>
-   ```
-2. Start services:
-   ```bash
-   docker compose pull
-   docker compose build
-   docker compose up -d
-   ```
+Hermes adds operational control above inference:
 
-## Recommended update sequence
+1. **Event/Webhook intake** from external systems.
+2. **Task creation and kanban tracking** in a SQLite-backed workflow board.
+3. **Human-in-the-loop approval** via Telegram notifications/commands.
+4. **Execution lifecycle management** (queued → approved → running → completed/failed).
+5. **Status feedback loop** back to operators.
+
+## Deployment and update runbook (mixed build + pull)
 
 ```bash
-# 1) Pull latest upstream images
+# 1) Fetch upstream images for pull-based services
 docker compose pull
 
 # 2) Rebuild locally customized services
-docker compose build --no-cache litellm
+docker compose build
 
-# 3) Restart stack
+# 3) Start or refresh stack
 docker compose up -d --remove-orphans
 ```
 
-> **`pull` vs `build`:** Use `docker compose pull` for services that come from image registries. Use `docker compose build` for services defined by local Dockerfiles/custom config (for example LiteLLM customizations). In mixed stacks, run both.
+### Build vs pull
 
-## Troubleshooting stale builds
+- Use `pull` for services sourced directly from registries.
+- Use `build` for services with local Dockerfiles or custom image logic.
+- In mixed stacks, run both each update cycle.
 
-If old behavior persists after an update:
+### Validation and health checks
 
 ```bash
-docker compose build --no-cache <service-name>
-docker compose rm -sf <service-name>
-docker compose up -d <service-name>
-docker compose logs -f <service-name>
+docker compose ps
+docker compose logs --tail=100
+curl -sSf http://127.0.0.1:4000/health || true
 ```
-  
+
+## Reliability and operations notes
+
+- Prefer small, reversible updates over large changes.
+- Validate gateway + backend reachability after each deploy.
+- Keep rollback simple: restore last-known-good images/config and restart.
+- Treat observability and runbooks as part of system design, not afterthoughts.
+
+## Repository guide
+
+- [docs/architecture.md](docs/architecture.md) — topology and component boundaries
+- [docs/configuration.md](docs/configuration.md) — sanitized configuration patterns
+- [docs/installation.md](docs/installation.md) — deployment workflow and prerequisites
+- [docs/models.md](docs/models.md) — model roles and routing intent
+- [docs/usage.md](docs/usage.md) — operator workflows and lifecycle
+
+## Legacy scope note
+
+This repository includes artifacts from earlier UI/image-generation experiments (for example ComfyUI-related paths). They are retained as optional/legacy context and are **not** the primary architecture narrative.
+
+## Security & sanitization note
+
+All infrastructure identifiers in this repository are placeholders:
+
+- Example domains (`*.example.com`)
+- RFC1918 IP examples (`10.0.0.0/8`)
+- Redacted credentials/tokens (`<REPLACE_ME>`)
+
+Do not publish real hostnames, secrets, private API keys, or environment-specific internal paths.
+
+## License
+
+[MIT](LICENSE)
